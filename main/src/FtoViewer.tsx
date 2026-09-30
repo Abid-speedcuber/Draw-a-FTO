@@ -19,10 +19,14 @@ export type FtoViewerApi = {
   setKeyboardEnabled(enabled: boolean): void;
   getFaceletTransition(algorithm: string): number[] | null;
   getCenterTargets(): CenterTargets;
+  copyPngToClipboard(): Promise<void>;
   setMode(mode: FtoViewerMode): void;
   setColor(color: number): void;
   setFaceColors(colors: string[]): void;
   setTopFaceOpacity(opacity: number): void;
+  setTopFaceXOffset(offset: number): void;
+  setTopFaceYOffset(offset: number): void;
+  setTopFaceZOffset(offset: number): void;
   setLastLayerMode(enabled: boolean): void;
   resetPuzzle(): void;
   resetView(): void;
@@ -37,6 +41,9 @@ declare global {
         keyboard?: boolean;
         faceColors?: string[];
         topFaceOpacity?: number;
+        topFaceXOffset?: number;
+        topFaceYOffset?: number;
+        topFaceZOffset?: number;
         onFacelets?: (facelets: number[]) => void;
         onCenterTargets?: (targets: CenterTargets) => void;
       },
@@ -49,6 +56,9 @@ type Props = {
   selectedColor: number;
   faceColors: string[];
   topFaceOpacity: number;
+  topFaceXOffset: number;
+  topFaceYOffset: number;
+  topFaceZOffset: number;
   keyboardEnabled: boolean;
   lastLayerMode: boolean;
   viewerApiRef: MutableRefObject<FtoViewerApi | null>;
@@ -61,6 +71,9 @@ export default function FtoViewer({
   selectedColor,
   faceColors,
   topFaceOpacity,
+  topFaceXOffset,
+  topFaceYOffset,
+  topFaceZOffset,
   keyboardEnabled,
   lastLayerMode,
   viewerApiRef,
@@ -80,6 +93,9 @@ export default function FtoViewer({
       keyboard: keyboardEnabled,
       faceColors,
       topFaceOpacity,
+      topFaceXOffset,
+      topFaceYOffset,
+      topFaceZOffset,
       onFacelets,
       onCenterTargets,
     });
@@ -112,6 +128,18 @@ export default function FtoViewer({
   useEffect(() => {
     viewerRef.current?.setTopFaceOpacity(topFaceOpacity);
   }, [topFaceOpacity]);
+
+  useEffect(() => {
+    viewerRef.current?.setTopFaceXOffset(topFaceXOffset);
+  }, [topFaceXOffset]);
+
+  useEffect(() => {
+    viewerRef.current?.setTopFaceYOffset(topFaceYOffset);
+  }, [topFaceYOffset]);
+
+  useEffect(() => {
+    viewerRef.current?.setTopFaceZOffset(topFaceZOffset);
+  }, [topFaceZOffset]);
 
   useEffect(() => {
     viewerRef.current?.setKeyboardEnabled(keyboardEnabled);

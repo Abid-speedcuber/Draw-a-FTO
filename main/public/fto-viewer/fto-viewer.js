@@ -94,6 +94,9 @@
     var disposed = false;
     var renderedStickerIndexes = {};
     var topFaceOpacity = options.topFaceOpacity == null ? 1 : clampOpacity(options.topFaceOpacity);
+    var topFaceXOffset = options.topFaceXOffset == null ? 0 : clampTopFaceOffset(options.topFaceXOffset);
+    var topFaceYOffset = options.topFaceYOffset == null ? 0 : clampTopFaceYOffset(options.topFaceYOffset);
+    var topFaceZOffset = options.topFaceZOffset == null ? 0 : clampTopFaceOffset(options.topFaceZOffset);
 
     function buildPieceIndex() {
       var inPieces = new Array(72);
@@ -178,6 +181,7 @@
         faceletToSticker[faceletIndex] = idx;
         faceletColors[faceletIndex] = logicalFace;
         applyStickerOpacity(idx);
+        applyStickerVisualTransform(idx);
         if (renderedStickerIndexes[idx]) {
           stickerMeshes.push(mesh);
           stickerMeshes.push(borderMesh);
@@ -212,6 +216,60 @@
 
     function clampOpacity(value) {
       return Math.max(0, Math.min(1, Number(value)));
+    }
+
+    function clampTopFaceOffset(value) {
+      return Math.max(0, Math.min(160, Number(value)));
+    }
+
+    function clampTopFaceYOffset(value) {
+      return clampTopFaceOffset(value);
+    }
+
+    function topFaceOffsetForFacelet(faceletIndex) {
+      if (Math.floor(faceletIndex / 9) !== 0) {
+        return { x: 0, y: 0, z: 0 };
+      }
+      return {
+        x: topFaceXOffset * 0.01,
+        y: topFaceYOffset * 0.01,
+        z: topFaceZOffset * 0.01,
+      };
+    }
+
+    function applyStickerVisualTransform(stickerIndex) {
+      var sticker = cubePieces[stickerIndex];
+      if (!sticker) {
+        return;
+      }
+      sticker[1].matrix.copy(sticker[0]);
+      var offset = topFaceOffsetForFacelet(sticker[3]);
+      if (offset.x || offset.y || offset.z) {
+        sticker[1].matrix.multiplySelf(new THREE.Matrix4().setTranslation(offset.x, offset.y, offset.z));
+      }
+      sticker[1].update();
+    }
+
+    function updateCameraDistance() {
+      if (!camera) {
+        return;
+      }
+      var offsetMagnitude = Math.sqrt(
+        topFaceXOffset * topFaceXOffset +
+        topFaceYOffset * topFaceYOffset +
+        topFaceZOffset * topFaceZOffset
+      );
+      camera.position.z = 4.2 + offsetMagnitude * 0.022;
+    }
+
+    function refreshAllStickerVisualTransforms() {
+      for (var i = 0; i < cubePieces.length; i++) {
+        if (cubePieces[i]) {
+          applyStickerVisualTransform(i);
+        }
+      }
+      updateCameraDistance();
+      render();
     }
 
     function topFaceOpacityForFacelet(faceletIndex) {
@@ -422,8 +480,7 @@
           continue;
         }
         setStickerColor(k, nextState[k]);
-        cubePieces[k][1].matrix.copy(cubePieces[k][0]);
-        cubePieces[k][1].update();
+        applyStickerVisualTransform(k);
       }
       notifyState();
       return true;
@@ -1012,6 +1069,7 @@
       camera = new THREE.Camera(30, 1, 0.1, 1000);
       camera.target = { position: new THREE.Vector3(0, 0, 0) };
       camera.position = new THREE.Vector3(0, 0, 4.2);
+      updateCameraDistance();
     }
 
     function updateOrbit() {
@@ -1308,6 +1366,22 @@
       render();
     }
 
+    function copyPngToClipboard() {
+      if (!canvas || !navigator.clipboard || !navigator.clipboard.write || typeof ClipboardItem === "undefined") {
+        return Promise.reject(new Error("PNG clipboard copy is not available in this browser."));
+      }
+      var dataUrl = canvas.toDataURL("image/png");
+      var parts = dataUrl.split(",");
+      var mime = (parts[0].match(/:(.*?);/) || [])[1] || "image/png";
+      var binary = atob(parts[1]);
+      var bytes = new Uint8Array(binary.length);
+      for (var i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      var blob = new Blob([bytes], { type: mime });
+      return navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    }
+
     applyFaceColors(options.faceColors, false);
     initPuzzle();
     setupCamera();
@@ -1344,6 +1418,7 @@
       setKeyboardEnabled: setKeyboardEnabled,
       getFaceletTransition: getFaceletTransition,
       getCenterTargets: getCenterTargets,
+      copyPngToClipboard: copyPngToClipboard,
       setMode: function(nextMode) {
         mode = nextMode;
         if (mode === "swap") {
@@ -1366,6 +1441,18 @@
       setTopFaceOpacity: function(opacity) {
         topFaceOpacity = clampOpacity(opacity);
         refreshAllStickerOpacity();
+      },
+      setTopFaceXOffset: function(offset) {
+        topFaceXOffset = clampTopFaceOffset(offset);
+        refreshAllStickerVisualTransforms();
+      },
+      setTopFaceYOffset: function(offset) {
+        topFaceYOffset = clampTopFaceYOffset(offset);
+        refreshAllStickerVisualTransforms();
+      },
+      setTopFaceZOffset: function(offset) {
+        topFaceZOffset = clampTopFaceOffset(offset);
+        refreshAllStickerVisualTransforms();
       },
       setLastLayerMode: function(enabled) {
         lastLayerMode = !!enabled;
@@ -1397,8 +1484,7 @@
         for (var i = 0; i < cubePieces.length; i++) {
           if (cubePieces[i]) {
             setStickerColor(i, Math.floor(cubePieces[i][3] / 9));
-            cubePieces[i][1].matrix.copy(cubePieces[i][0]);
-            cubePieces[i][1].update();
+            applyStickerVisualTransform(i);
           }
         }
         if (lastLayerMode) {

@@ -75,6 +75,9 @@ export default function App() {
   const [selectedColor, setSelectedColor] = useState(0);
   const [faceColors, setFaceColors] = useState(defaultFaceColors);
   const [topFaceOpacity, setTopFaceOpacity] = useState(1);
+  const [topFaceXOffset, setTopFaceXOffset] = useState(0);
+  const [topFaceYOffset, setTopFaceYOffset] = useState(0);
+  const [topFaceZOffset, setTopFaceZOffset] = useState(0);
   const [keyboardEnabled, setKeyboardEnabled] = useState(true);
   const [lastLayerMode, setLastLayerMode] = useState(false);
   const [algorithm, setAlgorithm] = useState("");
@@ -153,6 +156,15 @@ export default function App() {
   function setSolvedState() {
     viewerRef.current?.setFacelets(solvedFacelets);
     setStatus("Loaded solved colors");
+  }
+
+  async function copyPngToClipboard() {
+    try {
+      await viewerRef.current?.copyPngToClipboard();
+      setStatus("Copied PNG to clipboard");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Could not copy PNG");
+    }
   }
 
   return (
@@ -235,6 +247,7 @@ export default function App() {
               <button onClick={resetView}>Reset view</button>
               <button onClick={setSolvedState}>Solved colors</button>
               <button onClick={loadCurrentStateIntoEditor}>Export state</button>
+              <button onClick={copyPngToClipboard}>Copy PNG</button>
             </div>
             <label className="range-row">
               <span>Top opacity</span>
@@ -248,6 +261,42 @@ export default function App() {
               />
               <strong>{Math.round(topFaceOpacity * 100)}%</strong>
             </label>
+            <label className="range-row">
+              <span>Top X</span>
+              <input
+                type="range"
+                min="0"
+                max="120"
+                step="1"
+                value={topFaceXOffset}
+                onChange={(event) => setTopFaceXOffset(Number(event.target.value))}
+              />
+              <strong>{topFaceXOffset}px</strong>
+            </label>
+            <label className="range-row">
+              <span>Top Y</span>
+              <input
+                type="range"
+                min="0"
+                max="120"
+                step="1"
+                value={topFaceYOffset}
+                onChange={(event) => setTopFaceYOffset(Number(event.target.value))}
+              />
+              <strong>{topFaceYOffset}px</strong>
+            </label>
+            <label className="range-row">
+              <span>Top Z</span>
+              <input
+                type="range"
+                min="0"
+                max="120"
+                step="1"
+                value={topFaceZOffset}
+                onChange={(event) => setTopFaceZOffset(Number(event.target.value))}
+              />
+              <strong>{topFaceZOffset}px</strong>
+            </label>
           </div>
         </aside>
 
@@ -257,6 +306,9 @@ export default function App() {
             selectedColor={selectedColor}
             faceColors={faceColors}
             topFaceOpacity={topFaceOpacity}
+            topFaceXOffset={topFaceXOffset}
+            topFaceYOffset={topFaceYOffset}
+            topFaceZOffset={topFaceZOffset}
             keyboardEnabled={keyboardEnabled}
             lastLayerMode={lastLayerMode}
             viewerApiRef={viewerRef}
