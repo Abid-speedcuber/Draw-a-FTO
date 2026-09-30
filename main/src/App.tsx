@@ -78,6 +78,7 @@ export default function App() {
   const [topFaceXOffset, setTopFaceXOffset] = useState(0);
   const [topFaceYOffset, setTopFaceYOffset] = useState(0);
   const [topFaceZOffset, setTopFaceZOffset] = useState(0);
+  const [backLayerFoldEnabled, setBackLayerFoldEnabled] = useState(false);
   const [keyboardEnabled, setKeyboardEnabled] = useState(true);
   const [lastLayerMode, setLastLayerMode] = useState(false);
   const [algorithm, setAlgorithm] = useState("");
@@ -297,6 +298,14 @@ export default function App() {
               />
               <strong>{topFaceZOffset}px</strong>
             </label>
+            <label className="action-toggle">
+              <input
+                type="checkbox"
+                checked={backLayerFoldEnabled}
+                onChange={(event) => setBackLayerFoldEnabled(event.target.checked)}
+              />
+              Back fold
+            </label>
           </div>
         </aside>
 
@@ -309,6 +318,7 @@ export default function App() {
             topFaceXOffset={topFaceXOffset}
             topFaceYOffset={topFaceYOffset}
             topFaceZOffset={topFaceZOffset}
+            backLayerFoldEnabled={backLayerFoldEnabled}
             keyboardEnabled={keyboardEnabled}
             lastLayerMode={lastLayerMode}
             viewerApiRef={viewerRef}

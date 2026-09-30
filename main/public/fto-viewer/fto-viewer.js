@@ -41,6 +41,7 @@
   var lastLayerUniqueCenterSlot = [null, 3, 8, 10];
   var targetHighlightHex = 0xf4ff62;
   var swapHighlightHex = 0xff80d4;
+  var backLayerFoldAngle = 230 * Math.PI / 180;
   var ftoKeymap = "I:R K:R' D:L E:L' J:U F:U' H:F G:F' S:D L:D' W:B O:B' 8:BR ,:BR' C:BL 3:BL' U:Rw M:Rw' R:Lw' V:Lw Y:[R] N:[R'] T:[L'] B:[L] ;:[U] A:[U'] P:T Q:T'";
 
   function createFtoViewer(container, options) {
@@ -97,6 +98,7 @@
     var topFaceXOffset = options.topFaceXOffset == null ? 0 : clampTopFaceOffset(options.topFaceXOffset);
     var topFaceYOffset = options.topFaceYOffset == null ? 0 : clampTopFaceYOffset(options.topFaceYOffset);
     var topFaceZOffset = options.topFaceZOffset == null ? 0 : clampTopFaceOffset(options.topFaceZOffset);
+    var backLayerFoldEnabled = !!options.backLayerFoldEnabled;
 
     function buildPieceIndex() {
       var inPieces = new Array(72);
@@ -152,6 +154,7 @@
         var ownMat = new THREE.MeshBasicMaterial({ color: faceColors[logicalFace] });
         var mesh = new THREE.Mesh(new THREE.Ploy(cords), [ownMat]);
         var backMesh = new THREE.Mesh(new THREE.Ploy(cords), [ownMat]);
+        var hingeY = hingeYFromPoints(borderCords);
         borderMesh.doubleSided = true;
         borderMesh.overdraw = true;
         mesh.doubleSided = true;
@@ -177,7 +180,7 @@
         sticker.matrixAutoUpdate = false;
         sticker.update();
 
-        cubePieces[idx] = [m, sticker, logicalFace, faceletIndex, mesh, borderMat, backMesh];
+        cubePieces[idx] = [m, sticker, logicalFace, faceletIndex, mesh, borderMat, backMesh, hingeY];
         faceletToSticker[faceletIndex] = idx;
         faceletColors[faceletIndex] = logicalFace;
         applyStickerOpacity(idx);
@@ -226,6 +229,14 @@
       return clampTopFaceOffset(value);
     }
 
+    function hingeYFromPoints(points) {
+      var maxY = -Infinity;
+      for (var i = 0; i < points.length; i++) {
+        maxY = Math.max(maxY, points[i][1]);
+      }
+      return maxY;
+    }
+
     function topFaceOffsetForFacelet(faceletIndex) {
       if (Math.floor(faceletIndex / 9) !== 0) {
         return { x: 0, y: 0, z: 0 };
@@ -243,6 +254,11 @@
         return;
       }
       sticker[1].matrix.copy(sticker[0]);
+      if (backLayerFoldEnabled && Math.floor(sticker[3] / 9) === 5) {
+        sticker[1].matrix.multiplySelf(new THREE.Matrix4().setTranslation(0, sticker[7], 0));
+        sticker[1].matrix.multiplySelf(new THREE.Matrix4().setRotationX(backLayerFoldAngle));
+        sticker[1].matrix.multiplySelf(new THREE.Matrix4().setTranslation(0, -sticker[7], 0));
+      }
       var offset = topFaceOffsetForFacelet(sticker[3]);
       if (offset.x || offset.y || offset.z) {
         sticker[1].matrix.multiplySelf(new THREE.Matrix4().setTranslation(offset.x, offset.y, offset.z));
@@ -1452,6 +1468,10 @@
       },
       setTopFaceZOffset: function(offset) {
         topFaceZOffset = clampTopFaceOffset(offset);
+        refreshAllStickerVisualTransforms();
+      },
+      setBackLayerFoldEnabled: function(enabled) {
+        backLayerFoldEnabled = !!enabled;
         refreshAllStickerVisualTransforms();
       },
       setLastLayerMode: function(enabled) {

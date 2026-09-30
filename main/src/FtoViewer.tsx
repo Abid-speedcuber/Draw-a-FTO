@@ -27,6 +27,7 @@ export type FtoViewerApi = {
   setTopFaceXOffset(offset: number): void;
   setTopFaceYOffset(offset: number): void;
   setTopFaceZOffset(offset: number): void;
+  setBackLayerFoldEnabled(enabled: boolean): void;
   setLastLayerMode(enabled: boolean): void;
   resetPuzzle(): void;
   resetView(): void;
@@ -44,6 +45,7 @@ declare global {
         topFaceXOffset?: number;
         topFaceYOffset?: number;
         topFaceZOffset?: number;
+        backLayerFoldEnabled?: boolean;
         onFacelets?: (facelets: number[]) => void;
         onCenterTargets?: (targets: CenterTargets) => void;
       },
@@ -59,6 +61,7 @@ type Props = {
   topFaceXOffset: number;
   topFaceYOffset: number;
   topFaceZOffset: number;
+  backLayerFoldEnabled: boolean;
   keyboardEnabled: boolean;
   lastLayerMode: boolean;
   viewerApiRef: MutableRefObject<FtoViewerApi | null>;
@@ -74,6 +77,7 @@ export default function FtoViewer({
   topFaceXOffset,
   topFaceYOffset,
   topFaceZOffset,
+  backLayerFoldEnabled,
   keyboardEnabled,
   lastLayerMode,
   viewerApiRef,
@@ -96,6 +100,7 @@ export default function FtoViewer({
       topFaceXOffset,
       topFaceYOffset,
       topFaceZOffset,
+      backLayerFoldEnabled,
       onFacelets,
       onCenterTargets,
     });
@@ -140,6 +145,10 @@ export default function FtoViewer({
   useEffect(() => {
     viewerRef.current?.setTopFaceZOffset(topFaceZOffset);
   }, [topFaceZOffset]);
+
+  useEffect(() => {
+    viewerRef.current?.setBackLayerFoldEnabled(backLayerFoldEnabled);
+  }, [backLayerFoldEnabled]);
 
   useEffect(() => {
     viewerRef.current?.setKeyboardEnabled(keyboardEnabled);

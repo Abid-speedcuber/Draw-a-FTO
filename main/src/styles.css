@@ -188,6 +188,21 @@ textarea {
   text-align: right;
 }
 
+.action-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: #4d5660;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.action-toggle input {
+  width: 15px;
+  height: 15px;
+}
+
 .move-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 10px;
