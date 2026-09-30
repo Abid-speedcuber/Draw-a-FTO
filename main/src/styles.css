@@ -167,6 +167,27 @@ textarea {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.range-row {
+  display: grid;
+  grid-template-columns: auto minmax(90px, 1fr) 42px;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  color: #4d5660;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.range-row input {
+  width: 100%;
+  accent-color: #1f6feb;
+}
+
+.range-row strong {
+  color: #20242a;
+  text-align: right;
+}
+
 .move-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 10px;

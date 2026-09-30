@@ -22,6 +22,7 @@ export type FtoViewerApi = {
   setMode(mode: FtoViewerMode): void;
   setColor(color: number): void;
   setFaceColors(colors: string[]): void;
+  setTopFaceOpacity(opacity: number): void;
   setLastLayerMode(enabled: boolean): void;
   resetPuzzle(): void;
   resetView(): void;
@@ -35,6 +36,7 @@ declare global {
       options?: {
         keyboard?: boolean;
         faceColors?: string[];
+        topFaceOpacity?: number;
         onFacelets?: (facelets: number[]) => void;
         onCenterTargets?: (targets: CenterTargets) => void;
       },
@@ -46,6 +48,7 @@ type Props = {
   mode: FtoViewerMode;
   selectedColor: number;
   faceColors: string[];
+  topFaceOpacity: number;
   keyboardEnabled: boolean;
   lastLayerMode: boolean;
   viewerApiRef: MutableRefObject<FtoViewerApi | null>;
@@ -57,6 +60,7 @@ export default function FtoViewer({
   mode,
   selectedColor,
   faceColors,
+  topFaceOpacity,
   keyboardEnabled,
   lastLayerMode,
   viewerApiRef,
@@ -75,6 +79,7 @@ export default function FtoViewer({
     const viewer = window.createFtoViewer(hostRef.current, {
       keyboard: keyboardEnabled,
       faceColors,
+      topFaceOpacity,
       onFacelets,
       onCenterTargets,
     });
@@ -103,6 +108,10 @@ export default function FtoViewer({
   useEffect(() => {
     viewerRef.current?.setFaceColors(faceColors);
   }, [faceColors]);
+
+  useEffect(() => {
+    viewerRef.current?.setTopFaceOpacity(topFaceOpacity);
+  }, [topFaceOpacity]);
 
   useEffect(() => {
     viewerRef.current?.setKeyboardEnabled(keyboardEnabled);

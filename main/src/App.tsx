@@ -74,6 +74,7 @@ export default function App() {
   const [mode, setMode] = useState<FtoViewerMode>("pan");
   const [selectedColor, setSelectedColor] = useState(0);
   const [faceColors, setFaceColors] = useState(defaultFaceColors);
+  const [topFaceOpacity, setTopFaceOpacity] = useState(1);
   const [keyboardEnabled, setKeyboardEnabled] = useState(true);
   const [lastLayerMode, setLastLayerMode] = useState(false);
   const [algorithm, setAlgorithm] = useState("");
@@ -235,6 +236,18 @@ export default function App() {
               <button onClick={setSolvedState}>Solved colors</button>
               <button onClick={loadCurrentStateIntoEditor}>Export state</button>
             </div>
+            <label className="range-row">
+              <span>Top opacity</span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value={Math.round(topFaceOpacity * 100)}
+                onChange={(event) => setTopFaceOpacity(Number(event.target.value) / 100)}
+              />
+              <strong>{Math.round(topFaceOpacity * 100)}%</strong>
+            </label>
           </div>
         </aside>
 
@@ -243,6 +256,7 @@ export default function App() {
             mode={mode}
             selectedColor={selectedColor}
             faceColors={faceColors}
+            topFaceOpacity={topFaceOpacity}
             keyboardEnabled={keyboardEnabled}
             lastLayerMode={lastLayerMode}
             viewerApiRef={viewerRef}

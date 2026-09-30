@@ -93,6 +93,7 @@
     var moveHistory = [];
     var disposed = false;
     var renderedStickerIndexes = {};
+    var topFaceOpacity = options.topFaceOpacity == null ? 1 : clampOpacity(options.topFaceOpacity);
 
     function buildPieceIndex() {
       var inPieces = new Array(72);
@@ -173,9 +174,10 @@
         sticker.matrixAutoUpdate = false;
         sticker.update();
 
-        cubePieces[idx] = [m, sticker, logicalFace, faceletIndex, mesh, borderMat];
+        cubePieces[idx] = [m, sticker, logicalFace, faceletIndex, mesh, borderMat, backMesh];
         faceletToSticker[faceletIndex] = idx;
         faceletColors[faceletIndex] = logicalFace;
+        applyStickerOpacity(idx);
         if (renderedStickerIndexes[idx]) {
           stickerMeshes.push(mesh);
           stickerMeshes.push(borderMesh);
@@ -206,6 +208,37 @@
         rendered[stickerIndex] = true;
       });
       return rendered;
+    }
+
+    function clampOpacity(value) {
+      return Math.max(0, Math.min(1, Number(value)));
+    }
+
+    function topFaceOpacityForFacelet(faceletIndex) {
+      return Math.floor(faceletIndex / 9) === 0 ? topFaceOpacity : 1;
+    }
+
+    function applyStickerOpacity(stickerIndex) {
+      var sticker = cubePieces[stickerIndex];
+      if (!sticker) {
+        return;
+      }
+      var opacity = topFaceOpacityForFacelet(sticker[3]);
+      var colorMaterial = sticker[4].materials[0];
+      var borderMaterial = sticker[5];
+      colorMaterial.opacity = opacity;
+      colorMaterial.transparent = opacity < 1;
+      borderMaterial.opacity = opacity;
+      borderMaterial.transparent = opacity < 1;
+    }
+
+    function refreshAllStickerOpacity() {
+      for (var i = 0; i < cubePieces.length; i++) {
+        if (cubePieces[i]) {
+          applyStickerOpacity(i);
+        }
+      }
+      render();
     }
 
     function stickerColorHex(color, faceletIndex) {
@@ -271,6 +304,7 @@
       }
       var material = sticker[4].materials[0];
       material.color.setHex(color);
+      applyStickerOpacity(stickerIndex);
     }
 
     function refreshStickerDisplayByFacelet(faceletIndex) {
@@ -1328,6 +1362,10 @@
       },
       setFaceColors: function(colors) {
         applyFaceColors(colors, true);
+      },
+      setTopFaceOpacity: function(opacity) {
+        topFaceOpacity = clampOpacity(opacity);
+        refreshAllStickerOpacity();
       },
       setLastLayerMode: function(enabled) {
         lastLayerMode = !!enabled;
