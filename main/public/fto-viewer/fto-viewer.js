@@ -43,19 +43,6 @@
   var swapHighlightHex = 0xff80d4;
   var ftoKeymap = "I:R K:R' D:L E:L' J:U F:U' H:F G:F' S:D L:D' W:B O:B' 8:BR ,:BR' C:BL 3:BL' U:Rw M:Rw' R:Lw' V:Lw Y:[R] N:[R'] T:[L'] B:[L] ;:[U] A:[U'] P:T Q:T'";
 
-  if (!THREE.LineBasicMaterial) {
-    THREE.LineBasicMaterial = function(parameters) {
-      THREE.Material.call(this, parameters);
-      parameters = parameters || {};
-      this.color = parameters.color !== undefined ? new THREE.Color(parameters.color) : new THREE.Color(0xffffff);
-      this.linewidth = parameters.linewidth !== undefined ? parameters.linewidth : 1;
-      this.linecap = parameters.linecap !== undefined ? parameters.linecap : "round";
-      this.linejoin = parameters.linejoin !== undefined ? parameters.linejoin : "round";
-    };
-    THREE.LineBasicMaterial.prototype = new THREE.Material();
-    THREE.LineBasicMaterial.prototype.constructor = THREE.LineBasicMaterial;
-  }
-
   function createFtoViewer(container, options) {
     options = options || {};
     var faceColors = defaultFaceColors.slice();
@@ -161,8 +148,6 @@
         var ownMat = new THREE.MeshBasicMaterial({ color: faceColors[logicalFace] });
         var mesh = new THREE.Mesh(new THREE.Ploy(cords), [ownMat]);
         var backMesh = new THREE.Mesh(new THREE.Ploy(cords), [ownMat]);
-        var frontOutline = makeOutline(cords, 0.004);
-        var backOutline = makeOutline(cords, -0.004);
         borderMesh.doubleSided = true;
         borderMesh.overdraw = true;
         mesh.doubleSided = true;
@@ -182,8 +167,6 @@
         sticker.addChild(borderMesh);
         sticker.addChild(mesh);
         sticker.addChild(backMesh);
-        sticker.addChild(frontOutline);
-        sticker.addChild(backOutline);
         var m = twistyjs.axify(puzzle.faceUVs[face][0], puzzle.faceUVs[face][1], puzzle.facePlanes[face].norm)
           .multiplySelf(new THREE.Matrix4().setTranslation(0, 0, 1));
         sticker.matrix.copy(m);
@@ -202,21 +185,6 @@
 
       cubeObject.scale = new THREE.Vector3(0.62, 0.62, 0.62);
       updateOrbit();
-    }
-
-    function makeOutline(points, z) {
-      var geometry = new THREE.Geometry();
-      for (var i = 0; i < points.length; i++) {
-        geometry.vertices.push(new THREE.Vertex(new THREE.Vector3(points[i][0], points[i][1], z)));
-      }
-      if (points.length > 0) {
-        geometry.vertices.push(new THREE.Vertex(new THREE.Vector3(points[0][0], points[0][1], z)));
-      }
-      return new THREE.Line(
-        geometry,
-        [new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 3, linecap: "round", linejoin: "round" })],
-        THREE.LineStrip
-      );
     }
 
     function stickerIndexesTouchedByMove(move) {
